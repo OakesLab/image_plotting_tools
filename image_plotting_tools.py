@@ -31,12 +31,12 @@ def gray2rgb(image, colormap):
 
 def inverted_overlay(image_list):
     combined_images = np.stack(image_list)
-    overlay = np.min(combined_images, axis=0)
+    overlay = np.mean(combined_images, axis=0).astype('uint8')
     return overlay
 
 def traditional_overlay(image_list):
     combined_images = np.stack(image_list)
-    overlay = np.max(combined_images, axis=0)
+    overlay = np.mean(combined_images, axis=0).astype('uint8')
     return overlay
 
 def make_colormaps():
