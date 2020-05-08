@@ -664,7 +664,7 @@ def ffmpeg_str(filesavename, imgstack,**kwargs):
             if 'scalefontsize' in kwargs:
                 scalebar_fontsize = str(kwargs['scalefontsize'])
             else:
-                scalebar_fontsize = str(int(img_h / 15))
+                scalebar_fontsize = str(int(width / 3))
 
             # check if it has a position
             if 'scalefontposition' in kwargs:
@@ -702,13 +702,13 @@ def ffmpeg_str(filesavename, imgstack,**kwargs):
                     timestamp_c = '30'
                 elif kwargs['timeposition'] == 'top_right':
                     timestamp_r = '30'
-                    timestamp_c = str(img_w - 160)
+                    timestamp_c = str(img_w - 3 * int(timestamp_fontsize) - 30)
                 elif kwargs['timeposition'] == 'bottom_left':
-                    timestamp_r = str(img_h - 50)
+                    timestamp_r = str(img_h - int(timestamp_fontsize))
                     timestamp_c = '30'
                 elif kwargs['timeposition'] == 'bottom_right':
-                    timestamp_r = str(img_h - 50)
-                    timestamp_c = str(img_w - 160)
+                    timestamp_r = str(img_h - int(timestamp_fontsize))
+                    timestamp_c = str(img_w - 3 * int(timestamp_fontsize) - 30)
             else:
                 timestamp_r = str(kwargs['timeposition'][0])
                 timestamp_c = str(kwargs['timeposition'][1])
@@ -833,6 +833,11 @@ def ffmpeg_str(filesavename, imgstack,**kwargs):
     return command_string, params
 
 def movie_overlay_test(imstack, **kwargs):
+    # check stack shape to make sure it's even or ffmpeg will throw an error
+    if imstack.shape[1] % 2:
+        imstack = imstack[:,:-1,:]
+    if imstack.shape[2] % 2:
+        imstack = imstack[:,:,:-1]
     
     # check if a timestamp is included
     if 'time_pts' in kwargs:
@@ -871,6 +876,12 @@ def save_timelapse_as_movie(savename, imstack, **kwargs):
     # make a temp folder to hold the image series
     os.mkdir('temp_folder')
     
+    # check stack shape to make sure it's even or ffmpeg will throw an error
+    if imstack.shape[1] % 2:
+        imstack = imstack[:,:-1,:]
+    if imstack.shape[2] % 2:
+        imstack = imstack[:,:,:-1]
+
     # determine the number of images
     N_images = imstack.shape[0]
     
