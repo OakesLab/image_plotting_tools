@@ -5,15 +5,15 @@ Written by Patrick Oakes, Ph.D.
 https://patrickoakeslab.com
 https://github.com/OakesLab
 
-20/04/15 - v 0.5
+20/05/08 - v 0.5
 '''
 
 import numpy as np
 import skimage.io as io
 import matplotlib.pyplot as plt
-#import glob as glob
 from matplotlib import cm
 from matplotlib.colors import ListedColormap
+import urllib
 import os
 import shutil
 import subprocess
@@ -38,6 +38,35 @@ def traditional_overlay(image_list):
     combined_images = np.stack(image_list)
     overlay = np.mean(combined_images, axis=0).astype('uint8')
     return overlay
+
+def load_XKCD_colors():
+    # link to the XCKD color list
+    rgb_url = "https://xkcd.com/color/rgb.txt"
+    # open the file
+    file = urllib.request.urlopen(rgb_url)
+    # create an empty list to hold colors
+    color_list = []
+    # loop through list and pull out colors and hex codes
+    for line in file:
+        # read line and get rid of ending \t\n
+        decoded_line = line.decode("utf-8").strip('\t\n')
+        # add to the empty list after splitting at the tab delimeter
+        color_list.append(decoded_line.split('\t#'))
+    # get rid of the header in the file
+    color_list.pop(0)
+    # create empty dictionaries for conversions
+    XKCD_color2hex_dict = {}
+    XKCD_color2RGB_dict = {}
+    XKCD_hex2RGB_dict = {}
+    XKCD_hex2color_dict = {}
+    # fill dictionaries with conversions
+    for color in color_list:
+        XKCD_hex2color_dict[color[1]] = color[0]
+        XKCD_hex2RGB_dict[color[1]] = tuple(int(color[1][i:i+2], 16) for i in (0, 2, 4))
+        XKCD_color2hex_dict[color[0]] = color[1]
+        XKCD_color2RGB_dict[color[0]] = tuple(int(color[1][i:i+2], 16) for i in (0, 2, 4))
+
+    return XKCD_hex2color_dict, XKCD_hex2RGB_dict, XKCD_color2hex_dict, XKCD_color2RGB_dict
 
 def make_colormaps():
     # Some of these are adapted from Christophe Leterrier
