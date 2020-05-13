@@ -5,7 +5,7 @@ Written by Patrick Oakes, Ph.D.
 https://patrickoakeslab.com
 https://github.com/OakesLab
 
-20/05/08 - v 0.5
+20/05/12
 '''
 
 import numpy as np
@@ -20,26 +20,25 @@ import subprocess
 import czifile
 
 def normalize_image(image, intensity_minimum, intensity_maximum):
+    '''Normalizes the image intensity from 0 to 1'''
     image[image < intensity_minimum] = intensity_minimum
     image[image > intensity_maximum] = intensity_maximum
     image_norm = (image - intensity_minimum) / (intensity_maximum - intensity_minimum)
     return image_norm 
 
 def gray2rgb(image, colormap):
+    '''Converts a grayscale image to an RGB image'''
     image_mapped = (255 * colormap(image)).astype('uint8')
     return image_mapped
 
-def inverted_overlay(image_list):
-    combined_images = np.stack(image_list)
-    overlay = np.mean(combined_images, axis=0).astype('uint8')
-    return overlay
-
-def traditional_overlay(image_list):
+def image_overlay(image_list):
+    '''Overlays a series of RGB images'''
     combined_images = np.stack(image_list)
     overlay = np.mean(combined_images, axis=0).astype('uint8')
     return overlay
 
 def load_XKCD_colors():
+    '''Loads XKCD color list into dictionaries to be referenced for easy conversion between hex, RGB and color name'''
     # link to the XCKD color list
     rgb_url = "https://xkcd.com/color/rgb.txt"
     # open the file
@@ -69,6 +68,7 @@ def load_XKCD_colors():
     return XKCD_hex2color_dict, XKCD_hex2RGB_dict, XKCD_color2hex_dict, XKCD_color2RGB_dict
 
 def make_colormaps():
+    '''Make a bunch of standard colormaps for use'''
     # Some of these are adapted from Christophe Leterrier
     # https://github.com/cleterrier/ChrisLUTs
     
@@ -298,7 +298,7 @@ def make_colormaps():
     return cmap_dict
 
 def show_default_colormaps():
-    # make a figure of standard colormaps that we can use
+    '''make a figure of standard colormaps that we can use'''
     
     # load the colormaps dictionary
     cmap_dict = make_colormaps()
@@ -334,7 +334,7 @@ def show_default_colormaps():
     return
 
 def make_colormap(cmap_input, color_name, show_plot = False):
-
+    '''Make a colormap object from either a tuple input (e.g. RGB values) or a hex string'''
     # if you need inspiration: https://xkcd.com/color/rgb/
     
     if type(cmap_input) == tuple:
@@ -351,8 +351,6 @@ def make_colormap(cmap_input, color_name, show_plot = False):
         RGB_values = tuple(int(hex_string[i:i+2], 16) for i in (0, 2, 4))
     else:
         raise Exception("Not a valid colomap input format: Use either Hex string or RGB tuple")
-    
-        
     
     # make different columns to fill with
     cmp_ones_col = np.ones((1,256))
@@ -391,6 +389,7 @@ def make_colormap(cmap_input, color_name, show_plot = False):
     return cmp_new, icmp_new
 
 def image_min_max(images,cmaps,img_min = 0 ,img_max = 0):
+    '''Rescale an image to a given minimum and maximum intensity'''
 
     # if no img_min given set up a list of the appropriate length to fill later
     if img_min == 0:
@@ -506,6 +505,7 @@ def image_min_max(images,cmaps,img_min = 0 ,img_max = 0):
     return image_list
 
 def overlay_image(images, cmps, img_min = 0, img_max = 0):
+    '''overlay a list of images with corresponding colormaps to create a multicolor overlay'''
 
     image_list = image_min_max(images, cmps, img_min, img_max)
     # create an empty list to hold the channel data
@@ -537,12 +537,8 @@ def overlay_image(images, cmps, img_min = 0, img_max = 0):
         # add this mapped image to our channel_list variable
         channels_mapped.append(channel_mapped)
 
-    
-    # check whether we're using inverted or traditional overlays
-    if channel_data[1].name[0] == 'i':
-        overlay = inverted_overlay(channels_mapped)
-    else:
-        overlay = traditional_overlay(channels_mapped)
+    # overlay images
+    overlay = image_overlay(channels_mapped)
     
     # determine how many columns to plot
     N_cols = len(image_list)
@@ -605,6 +601,7 @@ def overlay_image(images, cmps, img_min = 0, img_max = 0):
 
 
 def make_timestamp_list(frame_interval, N_frames, fmt = 'sec'):
+    '''Create a list of timestamps based on a time interval'''
     # construct a list of time points as integers
     time_pts = np.arange(0,frame_interval * N_frames, frame_interval)
     
@@ -634,6 +631,7 @@ def make_timestamp_list(frame_interval, N_frames, fmt = 'sec'):
     return timestamp_list
 
 def ffmpeg_str(filesavename, imgstack,**kwargs):
+    '''construct a string based on **kwargs for ffmpeg to run from the command line'''
 
     # get the dimensions of the image
     if len(imgstack.shape) == 3:
@@ -862,6 +860,9 @@ def ffmpeg_str(filesavename, imgstack,**kwargs):
     return command_string, params
 
 def movie_overlay_test(imstack, **kwargs):
+    '''Make a single test image with the appropriate overlays to make sure that 
+        scalebars and timestamps are positioned in the right places'''
+
     # check stack shape to make sure it's even or ffmpeg will throw an error
     if imstack.shape[1] % 2:
         imstack = imstack[:,:-1,:]
@@ -901,6 +902,7 @@ def movie_overlay_test(imstack, **kwargs):
     return params
     
 def save_timelapse_as_movie(savename, imstack, **kwargs):
+    '''Save a timelapse as a movie using the **kwargs to make a ffmpeg command to run in the terminal'''
     
     # make a temp folder to hold the image series
     os.mkdir('temp_folder')

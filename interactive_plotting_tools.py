@@ -51,12 +51,8 @@ def overlay_image_widget(images, cmps, img_min = 0, img_max = 0):
         # add this mapped image to our channel_list variable
         channels_mapped.append(channel_mapped)
 
-    
-    # check whether we're using inverted or traditional overlays
-    if channel_data[1].name[0] == 'i':
-        overlay = inverted_overlay(channels_mapped)
-    else:
-        overlay = traditional_overlay(channels_mapped)
+    # overlay images
+    overlay = image_overlay(channels_mapped)
 
     # return the overlay matrix as your output
     return overlay
@@ -95,7 +91,7 @@ def rgb_to_hex(rgb):
     '''converts an rgb tuple to a hex string'''
     return '%02x%02x%02x' % rgb
 
-def interactive_overlay(inverted_check,t,
+def overlay_interactive(inverted_check,t,
                         img1_check, img2_check, img3_check,
                         img1,img2,img3,
                         R1,G1,B1,R2,G2,B2,R3,G3,B3,
@@ -173,10 +169,9 @@ def interactive_overlay(inverted_check,t,
             # add this mapped image to our channel_list variable
             channels_mapped.append(channel_mapped)
 
-        if inverted_check:
-            overlay = inverted_overlay(channels_mapped)
-        else:
-            overlay = traditional_overlay(channels_mapped)
+        # overlay images
+        overlay = image_overlay(channels_mapped)
+
         if len(overlay.shape) == 3:
             # display the figure
             fig = plt.figure(figsize=(5,5))
@@ -420,7 +415,7 @@ def interactive_overlay_images(file_list):
                                     'intensity_minimum' : inten_min_c3, 'intensity_maximum' : inten_max_c3, 'c' : fixed(2),
                                     'inverted_check' : inverted_check})
     # overlay channel
-    channel_overlay = widgets.interactive_output(interactive_overlay, 
+    channel_overlay = widgets.interactive_output(overlay_interactive, 
                                 {'inverted_check' : inverted_check, 't' : time_pt,
                                  'img1_check' : channel_check_c1, 'img2_check' : channel_check_c2, 'img3_check' : channel_check_c3,
                                  'img1' : file_name_c1, 'img2' : file_name_c2, 'img3' : file_name_c3,
