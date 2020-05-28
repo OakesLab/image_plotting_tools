@@ -82,6 +82,11 @@ If you want to be able to import these files in any notebook you should add thei
 1. At the prompt type `echo %PYTHONPATH%` - you should see the path to your folder
 
 # Example Usage
+
+### Example Files can be found here:
+3 Channel Example Image : https://www.dropbox.com/sh/cgq78z9zu1flz3l/AAADyhcdyEK6Zo9rJsVqA4zXa?dl=0
+Timelapse Example Image : https://www.dropbox.com/sh/l96nf494bkq4gdq/AABXAKIqX1_4aRUrqVIqfBLLa?dl=0
+
 A Jupyter notebook and example files are included in the repository. 
 
 Import appropriate toolboxes
