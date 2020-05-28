@@ -36,7 +36,7 @@ ffmpeg ver 4.2.2
 
 		brew install ffmpeg
 
-1. onfirm that it is installed correctly by typing ffmpeg at the prompt
+1. Confirm that it is installed correctly by typing ffmpeg at the prompt. You should see details about version number and installed codecs, etc. 
 
 ### Windows:
 
@@ -53,7 +53,7 @@ ffmpeg ver 4.2.2 - from here: https://ffmpeg.zeranoe.com/builds/
 1. Add the path to the directory where you unzipped ffmpeg and add `\bin\` to it - e.g. `c:\ffmpeg\bin\`
 1. Click OK
 1. Check to see if the path to the ffmpeg folder was added to the path variable. There should now be a `;` before and after it
-1. Confirm that it is installed correctly by typing ffmpeg at the prompt
+1. Confirm that it is installed correctly by typing ffmpeg at the prompt. You should see details about version number and installed codecs, etc. 
 
 ## Adding the files to your python path
 
@@ -63,7 +63,7 @@ If you want to be able to import these files in any notebook you should add thei
 1. Download the files from Github to a folder that will store your python code
 1. Navigate to your home folder (look for the house in the list of favorites in a finder window)
 1. Show hidden files by hitting `shift` + `command` + `.`
-1. Right click on `.bash_profile` and select "Open With" in any text editor (e.g. )
+1. Right click on `.bash_profile` and select "Open With" in any text editor (e.g. TextEdit)
 1. Add a line at the end with the following: `export PYTHONPATH=/Users/<username>/<path>` where `<username>` is your home folder name and `<path>` is the path to the folder where you saved the files
 1. Save the file and press `shift` + `command` + `.` to hide hidden files again
 1. Open a new terminal window for the changes to take effect
@@ -82,6 +82,7 @@ If you want to be able to import these files in any notebook you should add thei
 1. At the prompt type `echo %PYTHONPATH%` - you should see the path to your folder
 
 # Example Usage
+A Jupyter notebook and example files are included in the repository. 
 
 Import appropriate toolboxes
 ```python
