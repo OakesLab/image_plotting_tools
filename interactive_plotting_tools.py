@@ -5,22 +5,28 @@ Written by Patrick Oakes, Ph.D.
 https://patrickoakeslab.com
 https://github.com/OakesLab
 
-20/05/08
+05.27.20
 '''
 
 import ipywidgets as widgets                         # widgets
-from ipywidgets import fixed, Layout
-from image_plotting_tools import *
-import os
-import matplotlib.pyplot as plt
-from IPython.display import display
-import glob as glob
-import skimage.io as io                                        # reading in images
-import csv
-import czifile
+# from ipywidgets import fixed, Layout      
+from image_plotting_tools import *                   # functions for making overlays
+import os                                            # for manipulating system function
+import matplotlib.pyplot as plt                      # for plotting
+from IPython.display import display                  # for displaying widgets
+import glob as glob                                  # for making lists of files
+import skimage.io as io                              # for reading in images
+import csv                                           # for saving image parameters as csv
+# optional: try importing czfile for reading in zeiss images
+try:
+    import czifile                                       # for reading czi files
+except:
+    a = 1
 
 def overlay_image_widget(images, cmps, img_min = 0, img_max = 0):
-
+    '''
+    This creates the RGB image for the given stack from the specified colormap and intensity min/max
+    '''
     image_list = image_min_max(images, cmps, img_min, img_max)
     # create an empty list to hold the channel data
     channels = []
@@ -59,20 +65,28 @@ def overlay_image_widget(images, cmps, img_min = 0, img_max = 0):
 
 # functions to make the channel interactive
 def interactive_plot(channel_check, R,G,B, img, t,intensity_minimum, intensity_maximum, c,inverted_check):
+    '''
+    Uses the RGB values and intensity values to display an RGB image of the given image
+    '''
     
+    # check if the channel is included in the overlay
     if channel_check:
+        # make the colormaps based on the RGB values
         cmp, icmp = make_colormap((R,G,B),'COLOR',False)
 
+        # determine whether the colormap is inverted
         if inverted_check:
             cmp = icmp
+        # Read in the image based on the filename 
         if img[-3:] == 'tif':
             img = io.imread(img)
         elif img[-3:] == 'czi':
             img = czifile.imread(img)
             img = img[0,0,c,:,0,:,:,0]
 
+        # Determine if it's a timelapse and display the image
         if len(img.shape) > 2:
-    #         time.max = img.shape[0]
+            # if it's a timelapse only plot the relevant time point
             fig = plt.figure(figsize=(5,5))
             plt.imshow(img[t], cmap = cmp, vmin = intensity_minimum, vmax = intensity_maximum)
             plt.axis('off')
@@ -81,10 +95,12 @@ def interactive_plot(channel_check, R,G,B, img, t,intensity_minimum, intensity_m
             plt.imshow(img, cmap = cmp, vmin = intensity_minimum, vmax = intensity_maximum)
             plt.axis('off')
     else:
+        # if channel is not selected display a placeholder
         fig = plt.figure(figsize=(5,5))
         plt.imshow(np.zeros((100,100)), cmap='Greys')
         plt.text(40,50,'NO IMAGE')
         plt.axis('off')
+
     return img
 
 def rgb_to_hex(rgb):
@@ -97,6 +113,10 @@ def overlay_interactive(inverted_check,t,
                         R1,G1,B1,R2,G2,B2,R3,G3,B3,
                         img1_min,img2_min,img3_min,
                         img1_max,img2_max,img3_max):
+    '''
+    Creates the overlay from the (up to) 3 channels
+    '''
+
     file_list, cmap_list, icmap_list, img_min_list, img_max_list = [], [], [], [], []
     if img1_check:
         if img1[-3:] == 'tif':
@@ -184,6 +204,11 @@ def overlay_interactive(inverted_check,t,
 
 
 def interactive_overlay_images(file_list):
+    '''
+    Main widget to create overlay images from multiple channels
+
+    input: file_list - a list of strings containing file names
+    '''
 
     # dummy parameters to initialize sliders
     img_min=0
@@ -193,7 +218,7 @@ def interactive_overlay_images(file_list):
     XKCD_hex2color_dict, XKCD_hex2RGB_dict, XKCD_color2hex_dict, XKCD_color2RGB_dict = load_XKCD_colors()
     
     # widgets for the overlay column
-    save_button = widgets.Button(description="Save Image", layout=Layout(width='98%'))
+    save_button = widgets.Button(description="Save Image", layout=widgets.Layout(width='98%'))
     save_name = widgets.Text(value='', description="Save Name", continuous_update=False)
     inverted_check = widgets.Checkbox(description='Invert Colormaps')
     blank = widgets.Label(value='')
@@ -224,6 +249,7 @@ def interactive_overlay_images(file_list):
         (R3.value, G3.value, B3.value) = tuple(int(hex_string[i:i+2], 16) for i in (0, 2, 4))
         
     def color_name_fromRGB_c1(change):
+        '''Takes the RGB slider values for channel 1 and checks if they correspond to names from the XKCD color dictionary'''
         hex_string = rgb_to_hex((R1.value, G1.value, B1.value))
         color_hex_c1.value = hex_string
         if hex_string in XKCD_hex2RGB_dict:
@@ -232,6 +258,7 @@ def interactive_overlay_images(file_list):
             color_text_c1.value = ''
             
     def color_name_fromRGB_c2(change):
+        '''Takes the RGB slider values for channel 2 and checks if they correspond to names from the XKCD color dictionary'''
         hex_string = rgb_to_hex((R2.value, G2.value, B2.value))
         color_hex_c2.value = hex_string
         if hex_string in XKCD_hex2RGB_dict:
@@ -240,6 +267,7 @@ def interactive_overlay_images(file_list):
             color_text_c2.value = ''
     
     def color_name_fromRGB_c3(change):
+        '''Takes the RGB slider values for channel 3 and checks if they correspond to names from the XKCD color dictionary'''
         hex_string = rgb_to_hex((R3.value, G3.value, B3.value))
         color_hex_c3.value = hex_string
         if hex_string in XKCD_hex2RGB_dict:
@@ -265,7 +293,6 @@ def interactive_overlay_images(file_list):
     R2 = widgets.IntSlider(value=123, min = 0, max = 255, step = 1, description = 'R', continuous_update = False)
     G2 = widgets.IntSlider(value=123, min = 0, max = 255, step = 1, description = 'G', continuous_update = False)
     B2 = widgets.IntSlider(value=123, min = 0, max = 255, step = 1, description = 'B', continuous_update = False)
-#     time_pt_c2 = widgets.IntSlider(value=0, min=0, max=0, step=1, description='Time pt', continuous_update = False)
     color_text_c2 = widgets.Text(value='', description="color name", continuous_update = False)
     color_hex_c2 = widgets.Text(value='', description="hex color",continuous_update = False)
     file_name_c2 = widgets.Dropdown(options = file_list, description='File')
@@ -277,7 +304,6 @@ def interactive_overlay_images(file_list):
     R3 = widgets.IntSlider(value=123, min = 0, max = 255, step = 1, description = 'R', continuous_update = False)
     G3 = widgets.IntSlider(value=123, min = 0, max = 255, step = 1, description = 'G', continuous_update = False)
     B3 = widgets.IntSlider(value=123, min = 0, max = 255, step = 1, description = 'B', continuous_update = False)
-#     time_pt_c3 = widgets.IntSlider(value=0, min=0, max=0, step=1, description='Time pt', continuous_update = False)
     color_text_c3 = widgets.Text(value='', description="color name", continuous_update = False)
     color_hex_c3 = widgets.Text(value='', description="hex color",continuous_update = False)
     file_name_c3 = widgets.Dropdown(options = file_list, description='File')
@@ -287,6 +313,8 @@ def interactive_overlay_images(file_list):
     
     # function comes after the sliders because it calls on variables established in the sliders
     def read_image_c1(file_name):
+        ''' Read in the image from the file list for channel 1'''
+        # read in the image
         if type(file_name) == str:
             if file_name[-3:] == 'tif':
                 img = io.imread(file_name)
@@ -295,10 +323,12 @@ def interactive_overlay_images(file_list):
                 img = img[0,0,0,:,0,:,:,0]
             else:
                 raise Exception("Not a valid string")
-                
+        
+        # if the image is a timelapse reset the time slider max
         if len(img.shape) > 2:
             time_pt.max = img.shape[0] - 1
 
+        # set min and maximum values on the sliders based on the image
         img_min = np.min(img)
         img_max = np.max(img)
 
@@ -313,6 +343,8 @@ def interactive_overlay_images(file_list):
     
     # function comes after the sliders because it calls on variables established in the sliders
     def read_image_c2(file_name):
+        ''' Read in the image from the file list for channel 2'''
+        # read in the image
         if type(file_name) == str:
             if file_name[-3:] == 'tif':
                 img = io.imread(file_name)
@@ -321,9 +353,12 @@ def interactive_overlay_images(file_list):
                 img = img[0,0,1,:,0,:,:,0]
             else:
                 raise Exception("Not a valid string")
+
+        # if the image is a timelapse reset the time slider max
         if len(img.shape) > 2:
             time_pt.max = img.shape[0] - 1
 
+        # set min and maximum values on the sliders based on the image
         img_min = np.min(img)
         img_max = np.max(img)
 
@@ -337,6 +372,8 @@ def interactive_overlay_images(file_list):
         return img, img_min, img_max
     
     def read_image_c3(file_name):
+        ''' Read in the image from the file list for channel 3'''
+        # read in the image
         if type(file_name) == str:
             if file_name[-3:] == 'tif':
                 img = io.imread(file_name)
@@ -345,9 +382,12 @@ def interactive_overlay_images(file_list):
                 img = img[0,0,2,:,0,:,:,0]
             else:
                 raise Exception("Not a valid string")
+
+        # if the image is a timelapse reset the time slider max
         if len(img.shape) > 2:
             time_pt.max = img.shape[0] - 1
 
+        # set min and maximum values on the sliders based on the image
         img_min = np.min(img)
         img_max = np.max(img)
 
@@ -400,19 +440,19 @@ def interactive_overlay_images(file_list):
     # this is the actual widget to display the proper image based on the sliders/textboxes/etc
     channel1 = widgets.interactive_output(interactive_plot, 
                                     {'channel_check' : channel_check_c1, 'R' : R1, 'G' : G1, 'B' : B1, 'img' : file_name_c1, 't' : time_pt,
-                                    'intensity_minimum' : inten_min_c1, 'intensity_maximum' : inten_max_c1, 'c' : fixed(0),
+                                    'intensity_minimum' : inten_min_c1, 'intensity_maximum' : inten_max_c1, 'c' : widgets.fixed(0),
                                     'inverted_check' : inverted_check})
 
     # this is the actual widget to display the proper image based on the sliders/textboxes/etc
     channel2 = widgets.interactive_output(interactive_plot, 
                                     {'channel_check' : channel_check_c2, 'R' : R2, 'G' : G2, 'B' : B2, 'img' : file_name_c2, 't' : time_pt,
-                                    'intensity_minimum' : inten_min_c2, 'intensity_maximum' : inten_max_c2, 'c' : fixed(1),
+                                    'intensity_minimum' : inten_min_c2, 'intensity_maximum' : inten_max_c2, 'c' : widgets.fixed(1),
                                     'inverted_check' : inverted_check})
     
     # this is the actual widget to display the proper image based on the sliders/textboxes/etc
     channel3 = widgets.interactive_output(interactive_plot, 
                                     {'channel_check' : channel_check_c3, 'R' : R3, 'G' : G3, 'B' : B3, 'img' : file_name_c3, 't' : time_pt,
-                                    'intensity_minimum' : inten_min_c3, 'intensity_maximum' : inten_max_c3, 'c' : fixed(2),
+                                    'intensity_minimum' : inten_min_c3, 'intensity_maximum' : inten_max_c3, 'c' : widgets.fixed(2),
                                     'inverted_check' : inverted_check})
     # overlay channel
     channel_overlay = widgets.interactive_output(overlay_interactive, 
@@ -426,6 +466,7 @@ def interactive_overlay_images(file_list):
                                 'img1_max' : inten_max_c1, 'img2_max' : inten_max_c2, 'img3_max' : inten_max_c3,})
 
     def save_image(yup):
+        '''function to save the overlay image'''
         channel_list, cmap_list, icmap_list, img_min_list, img_max_list = [], [], [], [], []
         if channel_check_c1.value:
             channel_list.append(file_name_c1.value)
@@ -450,18 +491,15 @@ def interactive_overlay_images(file_list):
             img_max_list.append(inten_max_c3.value)
         if inverted_check.value:
             overlay_im = overlay_image_widget(channel_list,icmap_list,img_min_list,img_max_list)
-#             image_list = image_min_max(file_list, icmap_list, img_min_list, img_max_list)
         else:
-#             image_list = image_min_max(file_list, cmap_list, img_min_list, img_max_list)
             overlay_im = overlay_image_widget(channel_list,cmap_list,img_min_list,img_max_list)
         curr_path = file_name_c1.value[:file_name_c1.value.rfind('/')+1]
         io.imsave(curr_path + save_name.value + '.tif' ,overlay_im)
 
-    # save_button.on_click(save_image, file_name.value,R.value,G.value,B.value,inten_min.value,inten_max.value)
+    # save button
     save_button.on_click(save_image)
     
-    # display the actual widget
-#     display(widgets.VBox([channel_check_c1,file_name_c1,time_pt_c1,color_text_c1,color_hex_c1,R1,G1,B1,inten_min_c1,inten_max_c1,inverted_check,channel1,save_button]))
+    # display the widgets
     display(
         widgets.HBox([
             widgets.VBox([channel_check_c1,file_name_c1,time_pt,color_text_c1,color_hex_c1,R1,G1,B1,
@@ -476,10 +514,18 @@ def interactive_overlay_images(file_list):
 
 
 def movie_maker_widget(timelapse_path):
+    '''
+    Widget to make a move from a timelapse
+
+    input: timelapse_path - a string that points to a multipage tif timelapse
+    '''
+
+    # read in the image and get it's dimensions
     overlay_timelapse = io.imread(timelapse_path)
     N_frames, img_h, img_w, N_notused = overlay_timelapse.shape
 
     def update_scaleposition(change):
+        '''function to update scalebar position text in the widget'''
         if scaleposition_r.value == 20:
             if scaleposition_c.value == 20:
                 scaleposition.value = 'top_left'
@@ -498,6 +544,7 @@ def movie_maker_widget(timelapse_path):
             scaleposition.value = ''
 
     def update_scaleposition_rc(change):
+        '''function to update scalebar position sliders based on text input'''
         if scaleposition.value == 'bottom_right':
             scaleposition_r.value = img_h - scaleheight.value - 20
             scaleposition_c.value = int(img_w - 20 - scalebar_length.value/um_per_pix.value)
@@ -520,6 +567,7 @@ def movie_maker_widget(timelapse_path):
             scalefontposition_c.value = scaleposition_c.value
 
     def update_timeposition(change):
+        '''function to update the timestampe text in the widget'''
         if timeposition_r.value == 30:
             if timeposition_c.value == 30:
                 timeposition.value = 'top_left'
@@ -538,6 +586,7 @@ def movie_maker_widget(timelapse_path):
             timeposition.value = ''
 
     def update_timeposition_rc(change):
+        '''function to update timestamp position sliders based on text input'''
         if change.new == 'bottom_right':
             timeposition_r.value = img_h - 1 * timefontsize.value
             timeposition_c.value = img_w - 3 * timefontsize.value - 30
@@ -552,6 +601,7 @@ def movie_maker_widget(timelapse_path):
             timeposition_c.value = img_w - 3 * timefontsize.value - 30
 
     def update_scalebar_length(change):
+        '''updates the scalebar based on the text input'''
         label_str = scalelabel.value
         if len(label_str) > 0:
             numbers = []
@@ -562,7 +612,10 @@ def movie_maker_widget(timelapse_path):
 
 
     def save_image(yup):
+        '''Saves the image and a parameter file '''
+        # get the main path of the file to make the movie from
         curr_path = timelapse_path[:timelapse_path.rfind('/')+1]
+        # make a string for the filename
         savename = curr_path + filesavename.value + '.mp4'
         # write out the parameters as a csv file for reference later
         if save_params_check.value:
@@ -586,11 +639,13 @@ def movie_maker_widget(timelapse_path):
                 'framerate' : framerate.value,
                 'quality' : quality.value
             }
+            # write out the csv file with the parameters
             with open(curr_path + filesavename.value + '_params.csv', 'w', newline="") as csv_file:  
                 writer = csv.writer(csv_file)
                 for key, value in param_dict.items():
                     writer.writerow([key, value])
 
+        # determine the parameters to pass to the save function
         if timestamp_check.value:
             # figure out the format
             if (time_interval.value * N_frames) < 60:
@@ -632,6 +687,9 @@ def movie_maker_widget(timelapse_path):
     def preview_overlay(imstack, movie_frame, time_interval, um_per_pix, scalebar_check, scalebar_length, scaleheight, scalecolor, scaleposition_r, scaleposition_c, 
                         scalelabel, scalefontsize, scalefont_r, scalefont_c, timestamp_check, timeposition_r, timeposition_c, timefontsize, framerate, 
                         quality, N_frames):
+        '''preview the overlay by writing only the given image from the time series'''
+
+        # make tuples from the row/column values from the sliders
         scaleposition = (scaleposition_r,scaleposition_c)
         scalefontposition = (scalefont_r, scalefont_c)
         timeposition = (timeposition_r,timeposition_c)
@@ -698,7 +756,7 @@ def movie_maker_widget(timelapse_path):
         plt.axis('off')
 
 
-
+    # widgets for the main movie section
     blank = widgets.Label(value = '')
     input_details = widgets.Label(value = 'Timelapse Movie Details')
     time_interval = widgets.FloatText(value = 1, description = 'timestep (s)', continuous_update = False)
@@ -706,6 +764,7 @@ def movie_maker_widget(timelapse_path):
     movie_frame = widgets.IntSlider(value=0, min=0, max=N_frames-1, description='Frame', continuous_update = False)
     save_params_check = widgets.Checkbox(description = 'Save Parameters Text File')
 
+    # widgets related to the scalebar
     scalebar_details = widgets.Label(value = 'Scalebar Parameters')
     scalebar_check = widgets.Checkbox(description = 'Include Scalebar')
     scalebar_length = widgets.IntSlider(value=10, min=0, max= int(img_w * 0.5 * um_per_pix.value), description='length (µm)', continuous_update=False)
@@ -718,6 +777,7 @@ def movie_maker_widget(timelapse_path):
     scalefontposition_r = widgets.IntSlider(value=(scaleposition_r.value - scalefontsize.value - 5), min=0, max=img_h, description='font row', continuous_update=False)
     scalefontposition_c = widgets.IntSlider(value=int(img_w - 20 - scalebar_length.value/um_per_pix.value), min=0, max=img_w, description='font col', continuous_update=False)
 
+    # widgets related to the timestamp
     timestamp_details = widgets.Label(value = 'Time Stamp Parameters')
     timestamp_check = widgets.Checkbox(description = 'Include Time Stamp')
     timefontsize = widgets.IntSlider(value=(3 * scalefontsize.value), min = 6, max=130, step = 1, description = 'fontsize', continuous_update = False)
@@ -725,55 +785,57 @@ def movie_maker_widget(timelapse_path):
     timeposition_r = widgets.IntSlider(value=30, min=0, max=img_h, description='time row', continuous_update=False)
     timeposition_c = widgets.IntSlider(value=(img_w - 3 * timefontsize.value - 30), min=0, max=img_w, description='time col', continuous_update=False)
     
+    # widgets related to saving the movie
     movie_details = widgets.Label(value = 'Output Movie Parameters')
     quality = widgets.IntSlider(value=25, min = 15, max = 30, step = 1, description = 'quality', continuous_update = False)
     framerate = widgets.IntSlider(value=10, min = 1, max = 60, step = 1, description = 'framerate', continuous_update = False)
     scalecolor = widgets.Dropdown(options=['black', 'white', 'gray'], description='Text color')
     filesavename = widgets.Text(value='', description='Save Name', continuous_update = False)
-    savebutton = widgets.Button(description="Save Movie", layout=Layout(width='98%'))
-    preview_overlay_button = widgets.Button(description="Preview Overlay", layout=Layout(width='98%'))
+    savebutton = widgets.Button(description="Save Movie", layout=widgets.Layout(width='98%'))
+    preview_overlay_button = widgets.Button(description="Preview Overlay", layout=widgets.Layout(width='98%'))
 
-
+    # widgets to update values based on the scalebar and timstamp position sliders text inputs
     scaleposition_r.observe(update_scaleposition, names="value")
     scaleposition_c.observe(update_scaleposition, names="value")
     timeposition_r.observe(update_timeposition, names="value")
     timeposition_c.observe(update_timeposition, names="value")
 
+    # widgets to update the row column sliders based on the text inputs
     scaleposition.observe(update_scaleposition_rc, names="value")
     timeposition.observe(update_timeposition_rc, names="value")
 
+    # widget to update scale bar length
     scalebar_length.observe(update_scaleposition_rc, names="value")
 
+    # widget to update the scalebar length and label based on the microns per pixel input
     um_per_pix.observe(update_scalebar_length, names="value")
     scalelabel.observe(update_scalebar_length, names="value")
 
+    # save button and preview button
     savebutton.on_click(save_image)
     preview_overlay_button.on_click(preview_overlay)
 
     # overlay channel
     overlay_preview = widgets.interactive_output(preview_overlay, 
-                            {'imstack' : fixed(overlay_timelapse), 'movie_frame' : movie_frame, 'time_interval' : time_interval, 
+                            {'imstack' : widgets.fixed(overlay_timelapse), 'movie_frame' : movie_frame, 'time_interval' : time_interval, 
                              'um_per_pix' : um_per_pix,
                             'scalebar_check' : scalebar_check, 'scalebar_length'  : scalebar_length, 'scaleheight' : scaleheight,
                             'scalecolor' : scalecolor, 'scaleposition_r' : scaleposition_r, 'scaleposition_c' : scaleposition_c, 
                              'scalelabel' : scalelabel, 'scalefontsize' : scalefontsize, 'scalefont_r': scalefontposition_r,
                              'scalefont_c' : scalefontposition_c, 'timestamp_check' : timestamp_check, 
                              'timeposition_r' : timeposition_r, 'timeposition_c' : timeposition_c, 'timefontsize' : timefontsize, 
-                             'framerate' : framerate, 'quality' : quality, 'N_frames' : fixed(N_frames)})
+                             'framerate' : framerate, 'quality' : quality, 'N_frames' : widgets.fixed(N_frames)})
 
 
-    # preview_overlay(imstack, scalebar_check, scalebar_length, scaleheight, scalecolor, scaleposition, scalelabel, scalefontsize,
-    #                    timestamp_check, timeposition, timefontsize, framerate, quality, N_frames)
-
+    # display thw widget
     display(widgets.HBox([widgets.VBox([input_details,time_interval,um_per_pix, movie_frame,
                           blank, scalebar_details, scalebar_check, scaleposition, scaleposition_r, 
                           scaleposition_c,scalebar_length, scaleheight,scalelabel,scalefontsize, 
-                          scalefontposition_r, scalefontposition_c], layout=Layout(display='flex' ,
-    align_items='center')),
+                          scalefontposition_r, scalefontposition_c], layout=widgets.Layout(display='flex' ,align_items='center')),
             widgets.VBox([movie_details, quality, framerate, scalecolor,blank,
                           timestamp_details, timestamp_check, timeposition, timeposition_r, 
                           timeposition_c, timefontsize,blank,blank,filesavename,save_params_check,savebutton], 
-                         layout=Layout(display='flex' , align_items='center')),
+                         layout=widgets.Layout(display='flex' , align_items='center')),
             widgets.VBox([overlay_preview])
                          ])
            )

@@ -5,19 +5,23 @@ Written by Patrick Oakes, Ph.D.
 https://patrickoakeslab.com
 https://github.com/OakesLab
 
-20/05/12
+05.27.20
 '''
 
-import numpy as np
-import skimage.io as io
-import matplotlib.pyplot as plt
-from matplotlib import cm
-from matplotlib.colors import ListedColormap
-import urllib
-import os
-import shutil
-import subprocess
-import czifile
+import numpy as np                                 # for math
+import skimage.io as io                            # for reading in images
+import matplotlib.pyplot as plt                    # for displaying images
+# from matplotlib import cm                          # for colormaps
+from matplotlib.colors import ListedColormap       # for making colormaps
+import urllib                                      # for fetching data from a url
+import os                                          # for system operations
+import shutil                                      # for handling files
+import subprocess                                  # for executing commands from the terminal
+# optional: try importing czfile for reading in zeiss images
+try: 
+    import czifile                                 # for importing czi files
+except:
+    a = 1
 
 def normalize_image(image, intensity_minimum, intensity_maximum):
     '''Normalizes the image intensity from 0 to 1'''
