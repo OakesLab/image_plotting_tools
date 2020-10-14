@@ -23,7 +23,7 @@ try:
 except:
     a = 1
 
-def overlay_image_widget(images, cmps, img_min = 0, img_max = 0):
+def overlay_image_widget(images, cmps, img_min = 0, img_max = 0, invertedoverlay = False):
     '''
     This creates the RGB image for the given stack from the specified colormap and intensity min/max
     '''
@@ -58,7 +58,10 @@ def overlay_image_widget(images, cmps, img_min = 0, img_max = 0):
         channels_mapped.append(channel_mapped)
 
     # overlay images
-    overlay = image_overlay(channels_mapped)
+    if invertedoverlay:
+        overlay = image_inverted_overlay(channels_mapped)
+    else:
+        overlay = image_overlay(channels_mapped)
 
     # return the overlay matrix as your output
     return overlay
@@ -190,7 +193,10 @@ def overlay_interactive(inverted_check,t,
             channels_mapped.append(channel_mapped)
 
         # overlay images
-        overlay = image_overlay(channels_mapped)
+        if inverted_check:
+            overlay = image_inverted_overlay(channels_mapped)
+        else:
+            overlay = image_overlay(channels_mapped)
 
         if len(overlay.shape) == 3:
             # display the figure
@@ -490,9 +496,9 @@ def interactive_overlay_images(file_list):
             img_min_list.append(inten_min_c3.value)
             img_max_list.append(inten_max_c3.value)
         if inverted_check.value:
-            overlay_im = overlay_image_widget(channel_list,icmap_list,img_min_list,img_max_list)
+            overlay_im = overlay_image_widget(channel_list,icmap_list,img_min_list,img_max_list, True)
         else:
-            overlay_im = overlay_image_widget(channel_list,cmap_list,img_min_list,img_max_list)
+            overlay_im = overlay_image_widget(channel_list,cmap_list,img_min_list,img_max_list, False)
         curr_path = file_name_c1.value[:file_name_c1.value.rfind('/')+1]
         io.imsave(curr_path + save_name.value + '.tif' ,overlay_im)
 

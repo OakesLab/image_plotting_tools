@@ -69,7 +69,7 @@ If you want to be able to import these files in any notebook you should add thei
 
 ### Windows:
 1. Download the files from Github to a folder that will store your python code
-1. From the taskbar search for "Advanced System Properties"
+1. From the taskbar search for "Advanced System Settings"
 1. Click on "Environment variables" button at the bottom
 1. In the top half of the window, under "User Variables" click on "New"
 1. Enter `PYTHONPATH` as the variable name

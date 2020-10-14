@@ -37,8 +37,20 @@ def gray2rgb(image, colormap):
 
 def image_overlay(image_list):
     '''Overlays a series of RGB images'''
-    combined_images = np.stack(image_list)
-    overlay = np.mean(combined_images, axis=0).astype('uint8')
+    overlay = np.zeros_like(image_list[0]).astype('uint16')
+    for im in image_list:
+        overlay = overlay + im.astype('uint16')
+    overlay[overlay > 255] = 255
+    overlay = overlay.astype('uint8')
+    return overlay
+
+def image_inverted_overlay(image_list):
+    '''Overlays a series of RGB images with inverted scales'''
+    overlay = np.zeros_like(image_list[0]).astype('float') + 255
+    for im in image_list:
+        overlay = overlay - (255 - im)
+    overlay[overlay < 0] = 0
+    overlay = overlay.astype('uint8')
     return overlay
 
 def load_XKCD_colors():
