@@ -17,6 +17,7 @@ from IPython.display import display                  # for displaying widgets
 import glob as glob                                  # for making lists of files
 import skimage.io as io                              # for reading in images
 import csv                                           # for saving image parameters as csv
+from skimage.color import gray2rgb                   # for converting grayscale to rgb for use with ffmpeg
 # optional: try importing czfile for reading in zeiss images
 try:
     import czifile                                       # for reading czi files
@@ -528,6 +529,10 @@ def movie_maker_widget(timelapse_path):
 
     # read in the image and get it's dimensions
     overlay_timelapse = io.imread(timelapse_path)
+    # if it's grayscale convert to rgb
+    if len(overlay_timelapse.shape) == 3:
+        overlay_timelapse = gray2rgb(overlay_timelapse)
+    # get the number of frames and the image size
     N_frames, img_h, img_w, N_notused = overlay_timelapse.shape
 
     def update_scaleposition(change):
@@ -718,7 +723,7 @@ def movie_maker_widget(timelapse_path):
                         extratags=[(306, 's', 0, str(time_pts[movie_frame]), True )])
         else:
             # just save normally
-            io.imsave('first_frame.tif',imstack[movie_frame])
+            io.imsave('first_frame.tif',imstack[movie_frame], check_contrast = False)
 
 
 
