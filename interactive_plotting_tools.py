@@ -748,7 +748,7 @@ def movie_maker_widget(timelapse_path):
                                                 framerate=framerate, quality=quality)
 
         # run ffmpeg
-        subprocess.call(command_string, shell=True)
+        a = subprocess.run(command_string, shell=True, stderr = subprocess.STDOUT, stdout = subprocess.DEVNULL)
 
         # delete the first frame
         os.remove('first_frame.tif')
