@@ -799,7 +799,7 @@ def movie_maker_widget(timelapse_path):
     # widgets related to saving the movie
     movie_details = widgets.Label(value = 'Output Movie Parameters')
     quality = widgets.IntSlider(value=25, min = 15, max = 30, step = 1, description = 'quality', continuous_update = False)
-    framerate = widgets.IntSlider(value=10, min = 1, max = 60, step = 1, description = 'framerate', continuous_update = False)
+    framerate = widgets.IntSlider(value=10, min = 1, max = 120, step = 1, description = 'framerate', continuous_update = False)
     scalecolor = widgets.Dropdown(options=['black', 'white', 'gray'], description='Text color')
     filesavename = widgets.Text(value='', description='Save Name', continuous_update = False)
     savebutton = widgets.Button(description="Save Movie", layout=widgets.Layout(width='98%'))
